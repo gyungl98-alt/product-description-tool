@@ -146,10 +146,8 @@
 
                 result.textContent = resultData.description || 'No description generated';
                 result.style.display = 'block';
-                } else {
-                    alert('Error: ' + resultData.error);
-                }
             } catch (error) {
+                console.error('Error generating description:', error);
                 alert('Error generating description: ' + error.message);
             } finally {
                 loading.style.display = 'none';
