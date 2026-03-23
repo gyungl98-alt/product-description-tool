@@ -125,15 +125,27 @@
             };
 
             try {
-                const response = await fetch('/generate', {
+                const response = await fetch('http://localhost:3000/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                const resultData = await response.json();
-                if (response.ok) {
-                    result.textContent = resultData.description;
-                    result.style.display = 'block';
+
+                const textResponse = await response.text();
+                let resultData;
+                try {
+                    resultData = textResponse ? JSON.parse(textResponse) : null;
+                } catch (parseError) {
+                    console.error('Non-JSON response from server:', textResponse);
+                    throw new Error('Invalid server response format');
+                }
+
+                if (!response.ok || !resultData) {
+                    throw new Error(resultData?.error || 'Unexpected empty response from server');
+                }
+
+                result.textContent = resultData.description || 'No description generated';
+                result.style.display = 'block';
                 } else {
                     alert('Error: ' + resultData.error);
                 }

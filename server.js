@@ -20,7 +20,7 @@ app.post('/generate', async (req, res) => {
             return res.status(400).json({ error: 'Product name and category are required' });
         }
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+        const model = genAI.getGenerativeModel ? genAI.getGenerativeModel({ model: 'gemini-pro' }) : genAI;
 
         const prompt = `Generate a high-quality, SEO-optimized product description for the following product. The description should be suitable for Amazon, Shopify, and Flipkart. Focus on English language only. Make it engaging, persuasive, and include relevant keywords for search optimization.
 
@@ -40,13 +40,28 @@ Structure the description with:
 
 Ensure the description is between 200-400 words and optimized for e-commerce platforms.`;
 
-        const result = await model.generateContent(prompt);
-        const description = result.response.text();
+        let description = '';
+
+        if (typeof model.generateContent === 'function') {
+            const result = await model.generateContent(prompt);
+            description = (result && result.response && typeof result.response.text === 'function')
+                ? result.response.text()
+                : (result && result.output && result.output[0] && result.output[0].content ? result.output[0].content[0].text : '');
+        } else if (typeof model.generateText === 'function') {
+            const response = await model.generateText({ text: prompt });
+            description = response?.text || '';
+        } else {
+            throw new Error('Incompatible Gemini client SDK.');
+        }
+
+        if (!description) {
+            throw new Error('Gemini returned empty response');
+        }
 
         res.json({ description });
     } catch (error) {
         console.error('Error generating description:', error);
-        res.status(500).json({ error: 'Failed to generate description' });
+        res.status(500).json({ error: (error.message || 'Failed to generate description') });
     }
 });
 
