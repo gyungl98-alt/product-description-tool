@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Description Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .cost {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Product Description Generator</h1>
+        <p>Generate high-quality, SEO-optimized product descriptions for Amazon, Shopify, and Flipkart.</p>
+        <form id="productForm">
+            <label for="productName">Product Name:</label>
+            <input type="text" id="productName" required>
+
+            <label for="category">Category:</label>
+            <select id="category" required>
+                <option value="">Select Category</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Home & Kitchen">Home & Kitchen</option>
+                <option value="Beauty">Beauty</option>
+                <option value="Sports">Sports</option>
+                <option value="Books">Books</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label for="features">Key Features (comma-separated):</label>
+            <input type="text" id="features" placeholder="e.g., waterproof, lightweight, durable">
+
+            <label for="targetAudience">Target Audience:</label>
+            <input type="text" id="targetAudience" placeholder="e.g., fitness enthusiasts, professionals">
+
+            <label for="priceRange">Price Range:</label>
+            <input type="text" id="priceRange" placeholder="e.g., 1000-2000 INR">
+
+            <label for="additionalInfo">Additional Information:</label>
+            <textarea id="additionalInfo" rows="4" placeholder="Any other details..."></textarea>
+
+            <button type="submit">Generate Description (500-600 INR)</button>
+        </form>
+        <div class="cost">Cost: 500-600 INR per generation</div>
+        <div class="loading" id="loading">Generating description... Please wait.</div>
+        <div class="result" id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            loading.style.display = 'block';
+            result.style.display = 'none';
+
+            const data = {
+                productName: document.getElementById('productName').value,
+                category: document.getElementById('category').value,
+                features: document.getElementById('features').value,
+                targetAudience: document.getElementById('targetAudience').value,
+                priceRange: document.getElementById('priceRange').value,
+                additionalInfo: document.getElementById('additionalInfo').value
+            };
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const resultData = await response.json();
+                if (response.ok) {
+                    result.textContent = resultData.description;
+                    result.style.display = 'block';
+                } else {
+                    alert('Error: ' + resultData.error);
+                }
+            } catch (error) {
+                alert('Error generating description: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
