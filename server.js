@@ -32,38 +32,44 @@ app.post('/generate', async (req, res) => {
 
     try {
         let description = '';
+        let geminiRaw = null;
+        const modelName = process.env.GEMINI_MODEL || 'gemini-1.5';
 
-        // Preferred new method for @google/generative-ai
         if (typeof genAI.getModel === 'function') {
-            const model = genAI.getModel(process.env.GEMINI_MODEL || 'gemini-pro');
+            const model = genAI.getModel(modelName);
             if (typeof model.generateText === 'function') {
                 const response = await model.generateText({
                     prompt,
                     temperature: 0.2,
                     maxOutputTokens: 420
                 });
+                geminiRaw = response;
                 description = response?.text || '';
             }
         }
 
-        // Legacy method compatibility
         if (!description && typeof genAI.generateText === 'function') {
             const response = await genAI.generateText({ text: prompt });
+            geminiRaw = response;
             description = response?.text || '';
         }
 
         if (!description && typeof genAI.generateContent === 'function') {
             const response = await genAI.generateContent({ prompt });
-            if (response?.output && Array.isArray(response.output) && response.output[0]?.content) {
-                description = response.output[0].content.map(c => c.text).join('\n');
+            geminiRaw = response;
+            if (Array.isArray(response?.output)) {
+                description = response.output
+                    .map(item => (item?.content || []).map(c => c?.text || '').join('\n'))
+                    .join('\n');
             }
-            if (!description && response?.response?.text) {
+            if (!description && typeof response?.response?.text === 'function') {
                 description = response.response.text();
             }
         }
 
         if (!description) {
-            throw new Error('Gemini returned no description. Check API key and model availability.');
+            console.error('Gemini raw payload:', JSON.stringify(geminiRaw, null, 2));
+            throw new Error('Gemini returned no description. Check API key/model/quota.');
         }
 
         return res.json({ description });
