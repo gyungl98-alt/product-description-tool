@@ -105,6 +105,11 @@
         <div class="cost">Cost: 500-600 INR per generation</div>
         <div class="loading" id="loading">Generating description... Please wait.</div>
         <div class="result" id="result" style="display: none;"></div>
+        <div class="actions" id="actions" style="display: none; margin-top: 10px;">
+            <button type="button" id="copyBtn" style="background:#007bff;">Copy Description</button>
+            <button type="button" id="downloadBtn" style="background:#17a2b8;">Download Description</button>
+            <button type="button" id="clearBtn" style="background:#dc3545;">Clear</button>
+        </div>
     </div>
 
     <script>
@@ -146,13 +151,49 @@
 
                 result.textContent = resultData.description || 'No description generated';
                 result.style.display = 'block';
+                document.getElementById('actions').style.display = 'flex';
+                document.getElementById('actions').style.gap = '10px';
             } catch (error) {
                 console.error('Error generating description:', error);
                 alert('Error generating description: ' + error.message);
+                document.getElementById('actions').style.display = 'none';
             } finally {
                 loading.style.display = 'none';
             }
         });
+
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        copyBtn.addEventListener('click', () => {
+            const content = document.getElementById('result').textContent;
+            if (!content) return;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('Description copied to clipboard');
+            }, err => {
+                alert('Failed to copy: ' + err);
+            });
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const content = document.getElementById('result').textContent;
+            if (!content) return;
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'product-description.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        clearBtn.addEventListener('click', () => {
+            document.getElementById('result').textContent = '';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('actions').style.display = 'none';
+        });
+
     </script>
 </body>
 </html>
